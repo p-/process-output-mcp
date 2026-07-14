@@ -237,7 +237,7 @@ func main() {
 	go func() {
 		mcpServer := newMCPServer()
 		httpServer := server.NewStreamableHTTPServer(mcpServer, server.WithStateLess(true))
-		addr := fmt.Sprintf(":%d", *port)
+		addr := fmt.Sprintf("127.0.0.1:%d", *port)
 		log.Printf("Streamable HTTP MCP server listening on %s (endpoint: /mcp)", addr)
 		if err := httpServer.Start(addr); err != nil {
 			log.Fatalf("Server error: %v", err)

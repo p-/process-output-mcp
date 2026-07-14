@@ -31,4 +31,4 @@ go.work.sum
 # .idea/
 # .vscode/
 
-process-output-mcp
+/process-output-mcp
