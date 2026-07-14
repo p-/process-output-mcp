@@ -74,6 +74,15 @@ You can use this tool to wrap `strace` and expose file-related syscalls of a run
 
 This lets an MCP client query which files a process is opening, creating, or modifying in real time.
 
+### Follow a log file
+
+Wrap `tail -f` to expose a log file's output via MCP:
+
+```bash
+# Stream a log file and make it queryable
+./process-output-mcp "tail -f ./some-log.txt"
+```
+
 ## Notes
 
 - The server continues running after the wrapped process exits, so clients can still query captured output.
