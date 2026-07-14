@@ -39,7 +39,7 @@ jobs:
           CGO_ENABLED: '0'
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-        run: go build -o process-output-mcp .
+        run: go build -o process-output-mcp ./cmd/process-output-mcp
 
       - name: Package zip
         run: zip "process-output-mcp-${{ matrix.label }}-${{ matrix.goarch }}.zip" process-output-mcp README.md
