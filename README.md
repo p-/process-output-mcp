@@ -61,6 +61,19 @@ This server uses the **Streamable HTTP** transport (MCP spec 2025-03-26), which 
 {"running": true, "exitCode": 0}
 ```
 
+## Tips & Tricks
+
+### Capture file events with strace
+
+You can use this tool to wrap `strace` and expose file-related syscalls of a running process via MCP:
+
+```bash
+# Trace all file-related syscalls of PID 74402
+./process-output-mcp "strace -f -e %file -p 74402"
+```
+
+This lets an MCP client query which files a process is opening, creating, or modifying in real time.
+
 ## Notes
 
 - The server continues running after the wrapped process exits, so clients can still query captured output.
