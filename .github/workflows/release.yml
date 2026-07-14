@@ -17,11 +17,13 @@ jobs:
         include:
           - goos: linux
             goarch: amd64
+            label: linux
           - goos: linux
             goarch: arm64
-
+            label: linux
           - goos: darwin
             goarch: arm64
+            label: macOS
     steps:
 
       - name: Check out code
@@ -40,13 +42,13 @@ jobs:
         run: go build -o process-output-mcp .
 
       - name: Package zip
-        run: zip "process-output-mcp-${{ matrix.goos }}-${{ matrix.goarch }}.zip" process-output-mcp README.md
+        run: zip "process-output-mcp-${{ matrix.label }}-${{ matrix.goarch }}.zip" process-output-mcp README.md
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: process-output-mcp-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: process-output-mcp-${{ matrix.goos }}-${{ matrix.goarch }}.zip
+          name: process-output-mcp-${{ matrix.label }}-${{ matrix.goarch }}
+          path: process-output-mcp-${{ matrix.label }}-${{ matrix.goarch }}.zip
 
   upload:
     name: Upload Release Assets
