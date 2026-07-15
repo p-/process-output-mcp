@@ -231,6 +231,95 @@ func TestGetProcessStatus_Exited(t *testing.T) {
 	}
 }
 
+func TestGetCurrentTimestamp_ReturnsValidRFC3339(t *testing.T) {
+	c := setupTestEnv(t)
+	ctx := context.Background()
+
+	before := time.Now().UTC().Truncate(time.Second)
+
+	result, err := c.CallTool(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name:      "get_current_timestamp",
+			Arguments: map[string]any{},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallTool failed: %v", err)
+	}
+
+	after := time.Now().UTC().Truncate(time.Second).Add(time.Second)
+
+	text := result.Content[0].(mcp.TextContent).Text
+	ts, err := time.Parse(time.RFC3339, text)
+	if err != nil {
+		t.Fatalf("returned timestamp is not valid RFC3339: %q", text)
+	}
+
+	if ts.Before(before) || ts.After(after) {
+		t.Errorf("timestamp %v not between %v and %v", ts, before, after)
+	}
+}
+
+func TestGetCurrentTimestamp_CompatibleWithGetLinesBetween(t *testing.T) {
+	c := setupTestEnv(t)
+	ctx := context.Background()
+
+	// Get a timestamp, then wait to ensure the next second starts
+	result, err := c.CallTool(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name:      "get_current_timestamp",
+			Arguments: map[string]any{},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallTool failed: %v", err)
+	}
+	startTime := result.Content[0].(mcp.TextContent).Text
+
+	time.Sleep(1100 * time.Millisecond)
+	store.AddLine("test line\n", false)
+	time.Sleep(1100 * time.Millisecond)
+
+	// Get a timestamp after adding lines
+	result, err = c.CallTool(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name:      "get_current_timestamp",
+			Arguments: map[string]any{},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallTool failed: %v", err)
+	}
+	endTime := result.Content[0].(mcp.TextContent).Text
+
+	// Use the timestamps with get_output_lines_between
+	result, err = c.CallTool(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name: "get_output_lines_between",
+			Arguments: map[string]any{
+				"start_time": startTime,
+				"end_time":   endTime,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallTool failed: %v", err)
+	}
+
+	var lines []outputstore.OutputLine
+	text := result.Content[0].(mcp.TextContent).Text
+	if err := json.Unmarshal([]byte(text), &lines); err != nil {
+		t.Fatalf("failed to unmarshal: %v", err)
+	}
+
+	if len(lines) != 1 {
+		t.Fatalf("expected 1 line, got %d", len(lines))
+	}
+	if lines[0].Content != "test line\n" {
+		t.Errorf("unexpected content: %q", lines[0].Content)
+	}
+}
+
 func TestHTTPIntegration(t *testing.T) {
 	store = outputstore.New()
 	processStatus = &ProcessStatus{}

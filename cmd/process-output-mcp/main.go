@@ -115,6 +115,11 @@ func newMCPServer() *server.MCPServer {
 		mcp.WithDescription("Get the current status of the wrapped process (running, exit code)"),
 	), handleGetProcessStatus)
 
+	// Tool: get_current_timestamp
+	mcpServer.AddTool(mcp.NewTool("get_current_timestamp",
+		mcp.WithDescription("Get the current server timestamp in RFC3339 format"),
+	), handleGetCurrentTimestamp)
+
 	return mcpServer
 }
 
@@ -166,6 +171,10 @@ func handleGetProcessStatus(ctx context.Context, request mcp.CallToolRequest) (*
 	}
 
 	return mcp.NewToolResultText(string(jsonData)), nil
+}
+
+func handleGetCurrentTimestamp(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return mcp.NewToolResultText(time.Now().UTC().Format(time.RFC3339)), nil
 }
 
 func main() {
