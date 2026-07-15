@@ -1,6 +1,6 @@
 # Process Output MCP Server
 
-An MCP server that wraps a long-running process and exposes its stdout/stderr output via the **Streamable HTTP** transport.
+An MCP server that wraps a long-running process and exposes its timestamp-annotated stdout/stderr output via the **Streamable HTTP** transport.
 
 ## Build
 
