@@ -43,6 +43,7 @@ This server uses the **Streamable HTTP** transport (MCP spec 2025-03-26), which 
 | Tool | Description | Parameters |
 |------|-------------|------------|
 | `get_output_lines_between` | Get output lines between two timestamps | `start_time` (RFC3339, required), `end_time` (RFC3339, required) |
+| `get_output_lines_from` | Get all output lines from a given timestamp until now | `start_time` (RFC3339, required) |
 | `get_latest_output` | Get the most recent lines of output | `lines` (number, default: 50) |
 | `get_process_status` | Get process status (running/exited, exit code) | _(none)_ |
 | `get_current_timestamp` | Get the current server timestamp in RFC3339 format | _(none)_ |

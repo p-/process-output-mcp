@@ -103,6 +103,101 @@ func TestGetLinesBetween_InvalidTimestamp(t *testing.T) {
 	}
 }
 
+func TestGetLinesFrom_ReturnsMatchingLines(t *testing.T) {
+	c := setupTestEnv(t)
+	ctx := context.Background()
+
+	store.AddLine("before line\n", false)
+	time.Sleep(5 * time.Millisecond)
+
+	start := time.Now().UTC()
+	time.Sleep(5 * time.Millisecond)
+
+	store.AddLine("after line 1\n", false)
+	store.AddLine("after line 2\n", true)
+
+	result, err := c.CallTool(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name: "get_output_lines_from",
+			Arguments: map[string]any{
+				"start_time": start.Format(time.RFC3339Nano),
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallTool failed: %v", err)
+	}
+
+	var lines []outputstore.OutputLine
+	text := result.Content[0].(mcp.TextContent).Text
+	if err := json.Unmarshal([]byte(text), &lines); err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if len(lines) != 2 {
+		t.Fatalf("expected 2 lines, got %d", len(lines))
+	}
+	if lines[0].Content != "after line 1\n" || lines[0].IsStdErr {
+		t.Errorf("first line mismatch: %+v", lines[0])
+	}
+	if lines[1].Content != "after line 2\n" || !lines[1].IsStdErr {
+		t.Errorf("second line mismatch: %+v", lines[1])
+	}
+}
+
+func TestGetLinesFrom_InvalidTimestamp(t *testing.T) {
+	c := setupTestEnv(t)
+	ctx := context.Background()
+
+	result, err := c.CallTool(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name: "get_output_lines_from",
+			Arguments: map[string]any{
+				"start_time": "not-a-timestamp",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallTool failed: %v", err)
+	}
+
+	if !result.IsError {
+		t.Fatal("expected error result for invalid timestamp")
+	}
+}
+
+func TestGetLinesFrom_ReturnsEmptyWhenNoMatch(t *testing.T) {
+	c := setupTestEnv(t)
+	ctx := context.Background()
+
+	store.AddLine("old line\n", false)
+	time.Sleep(5 * time.Millisecond)
+
+	futureTime := time.Now().UTC().Add(time.Hour)
+
+	result, err := c.CallTool(ctx, mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name: "get_output_lines_from",
+			Arguments: map[string]any{
+				"start_time": futureTime.Format(time.RFC3339Nano),
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("CallTool failed: %v", err)
+	}
+
+	var lines []outputstore.OutputLine
+	text := result.Content[0].(mcp.TextContent).Text
+	if err := json.Unmarshal([]byte(text), &lines); err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if len(lines) != 0 {
+		t.Fatalf("expected 0 lines, got %d", len(lines))
+	}
+}
+
 func TestGetLatestOutput_DefaultCount(t *testing.T) {
 	c := setupTestEnv(t)
 	ctx := context.Background()

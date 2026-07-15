@@ -102,6 +102,15 @@ func newMCPServer() *server.MCPServer {
 		),
 	), handleGetLinesBetween)
 
+	// Tool: get_output_lines_from
+	mcpServer.AddTool(mcp.NewTool("get_output_lines_from",
+		mcp.WithDescription("Get all process output lines from a given timestamp until now"),
+		mcp.WithString("start_time",
+			mcp.Required(),
+			mcp.Description("Start timestamp in RFC3339 format (e.g. 2026-07-14T10:00:00Z)"),
+		),
+	), handleGetLinesFrom)
+
 	// Tool: get_latest_output
 	mcpServer.AddTool(mcp.NewTool("get_latest_output",
 		mcp.WithDescription("Get the most recent lines of process output"),
@@ -139,6 +148,24 @@ func handleGetLinesBetween(ctx context.Context, request mcp.CallToolRequest) (*m
 	}
 
 	lines := store.GetLinesBetween(startTime, endTime)
+	jsonData, err := json.Marshal(lines)
+	if err != nil {
+		return mcp.NewToolResultError("Failed to serialize output lines"), nil
+	}
+
+	return mcp.NewToolResultText(string(jsonData)), nil
+}
+
+func handleGetLinesFrom(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args := request.GetArguments()
+	startStr, _ := args["start_time"].(string)
+
+	startTime, err := time.Parse(time.RFC3339, startStr)
+	if err != nil {
+		return mcp.NewToolResultError("Invalid start_time format. Use RFC3339 (e.g. 2026-07-14T10:00:00Z)"), nil
+	}
+
+	lines := store.GetLinesFrom(startTime)
 	jsonData, err := json.Marshal(lines)
 	if err != nil {
 		return mcp.NewToolResultError("Failed to serialize output lines"), nil

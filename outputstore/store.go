@@ -51,6 +51,20 @@ func (s *OutputStore) GetLinesBetween(start, end time.Time) []OutputLine {
 	return result
 }
 
+// GetLinesFrom returns all lines with timestamps >= start.
+func (s *OutputStore) GetLinesFrom(start time.Time) []OutputLine {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []OutputLine
+	for _, line := range s.lines {
+		if line.Timestamp.Equal(start) || line.Timestamp.After(start) {
+			result = append(result, line)
+		}
+	}
+	return result
+}
+
 // GetLatestLines returns the most recent n lines. If n exceeds the total
 // number of stored lines, all lines are returned.
 func (s *OutputStore) GetLatestLines(n int) []OutputLine {
