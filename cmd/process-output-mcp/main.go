@@ -76,7 +76,8 @@ func newMCPServer() *server.MCPServer {
 		fmt.Printf("[hook] afterInitialize: id=%v\n", id)
 	})
 	hooks.AddBeforeCallTool(func(ctx context.Context, id any, message *mcp.CallToolRequest) {
-		fmt.Printf("[hook] beforeCallTool: id=%v tool=%s\n", id, message.Params.Name)
+		args, _ := json.Marshal(message.GetArguments())
+		fmt.Printf("[hook] beforeCallTool: id=%v tool=%s args=%s\n", id, message.Params.Name, args)
 	})
 	hooks.AddAfterCallTool(func(ctx context.Context, id any, message *mcp.CallToolRequest, result any) {
 		fmt.Printf("[hook] afterCallTool: id=%v tool=%s\n", id, message.Params.Name)
