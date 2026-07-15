@@ -18,6 +18,7 @@ import (
 )
 
 var (
+	version       = "dev"
 	store         *outputstore.OutputStore
 	processStatus *ProcessStatus
 )
@@ -169,7 +170,13 @@ func handleGetProcessStatus(ctx context.Context, request mcp.CallToolRequest) (*
 
 func main() {
 	port := flag.Int("p", 8070, "Port number for the MCP server")
+	showVersion := flag.Bool("v", false, "Print the version and exit")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 
 	args := flag.Args()
 	if len(args) < 1 {
