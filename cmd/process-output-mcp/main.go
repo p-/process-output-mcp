@@ -60,27 +60,12 @@ func (ps *ProcessStatus) Snapshot() ProcessStatus {
 func newMCPServer() *server.MCPServer {
 	hooks := &server.Hooks{}
 
-	hooks.AddBeforeAny(func(ctx context.Context, id any, method mcp.MCPMethod, message any) {
-		fmt.Printf("[hook] beforeAny: method=%s id=%v\n", method, id)
-	})
-	hooks.AddOnSuccess(func(ctx context.Context, id any, method mcp.MCPMethod, message any, result any) {
-		fmt.Printf("[hook] onSuccess: method=%s id=%v\n", method, id)
-	})
 	hooks.AddOnError(func(ctx context.Context, id any, method mcp.MCPMethod, message any, err error) {
 		fmt.Printf("[hook] onError: method=%s id=%v err=%v\n", method, id, err)
-	})
-	hooks.AddBeforeInitialize(func(ctx context.Context, id any, message *mcp.InitializeRequest) {
-		fmt.Printf("[hook] beforeInitialize: id=%v\n", id)
-	})
-	hooks.AddAfterInitialize(func(ctx context.Context, id any, message *mcp.InitializeRequest, result *mcp.InitializeResult) {
-		fmt.Printf("[hook] afterInitialize: id=%v\n", id)
 	})
 	hooks.AddBeforeCallTool(func(ctx context.Context, id any, message *mcp.CallToolRequest) {
 		args, _ := json.Marshal(message.GetArguments())
 		fmt.Printf("[hook] beforeCallTool: id=%v tool=%s args=%s\n", id, message.Params.Name, args)
-	})
-	hooks.AddAfterCallTool(func(ctx context.Context, id any, message *mcp.CallToolRequest, result any) {
-		fmt.Printf("[hook] afterCallTool: id=%v tool=%s\n", id, message.Params.Name)
 	})
 
 	mcpServer := server.NewMCPServer(
